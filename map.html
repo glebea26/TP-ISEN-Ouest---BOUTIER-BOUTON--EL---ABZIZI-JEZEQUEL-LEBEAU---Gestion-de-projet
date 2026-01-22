@@ -105,172 +105,200 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const littoralBrestBounds = L.latLngBounds(
-        [48.32, -4.65],
-        [48.45, -4.35]
-    );
+const littoralBrestBounds = L.latLngBounds(
+    [48.32, -4.65],
+    [48.45, -4.35]
+);
 
-    const map = L.map('map', {
-        maxBounds: littoralBrestBounds,
-        maxBoundsViscosity: 1.0,
-        minZoom: 12,
-        maxZoom: 17
-    });
+const map = L.map('map', {
+    maxBounds: littoralBrestBounds,
+    maxBoundsViscosity: 1.0,
+    minZoom: 12,
+    maxZoom: 17
+});
 
-    map.fitBounds(littoralBrestBounds);
+map.fitBounds(littoralBrestBounds);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+const dateFixe = "22/01/2026";
+let selectedMarker = null;
+const LIKES_REQUIRED = 3;
+
+/* ==========================
+   🔴 POINTS ROUGES
+========================== */
+const dechetsRouges = [
+    [48.382, -4.494],
+    [48.371, -4.477],
+    [48.405, -4.515],
+    [48.360, -4.450]
+];
+
+dechetsRouges.forEach(coord => createRedMarker(coord, dateFixe));
+
+function createRedMarker(coord, date) {
+    const marker = L.circleMarker(coord, {
+        radius: 10,
+        color: '#c0392b',
+        fillColor: '#e74c3c',
+        fillOpacity: 0.9,
+        weight: 2
     }).addTo(map);
 
-    const dateFixe = "22/01/2026";
-    let selectedMarker = null;
+    marker.status = "red";
+    marker.likes = 0;
 
-    /* Points rouges existants */
-    const dechetsRouges = [
-        [48.382, -4.494],
-        [48.371, -4.477],
-        [48.405, -4.515],
-        [48.360, -4.450]
-    ];
+    marker.bindPopup(`
+        🔴 Déchets à ramasser<br>
+        <em>Date : ${date}</em><br><br>
+        <button onclick="markAsCleaned()">Je l’ai nettoyée</button>
+    `);
 
-    dechetsRouges.forEach(coord => {
-        const marker = L.circleMarker(coord, {
-            radius: 10,
-            color: '#c0392b',
-            fillColor: '#e74c3c',
-            fillOpacity: 0.9,
-            weight: 2
-        }).addTo(map);
+    marker.on("click", () => selectedMarker = marker);
+}
 
-        marker.bindPopup(`
-            🔴 Déchets à ramasser<br>
-            <em>Date : ${dateFixe}</em><br><br>
-            <button onclick="markAsCleaned()">Je l’ai nettoyée</button>
-        `);
+/* ==========================
+   🟢 POINTS VERTS EXISTANTS
+========================== */
+const dechetsVertsCoords = [
+    [48.388, -4.502],
+    [48.365, -4.468],
+    [48.410, -4.480]
+];
 
-        marker.on("click", () => {
-            selectedMarker = marker;
-        });
+dechetsVertsCoords.forEach(coord => createGreenMarker(coord, dateFixe));
+
+function createGreenMarker(coord, date) {
+    const marker = L.circleMarker(coord, {
+        radius: 8,
+        color: '#1e8449',
+        fillColor: '#2ecc71',
+        fillOpacity: 0.9,
+        weight: 2
+    }).addTo(map);
+
+    marker.bindPopup(`🟢 Déchets récupérés<br><em>Date : ${date}</em>`);
+}
+
+/* ==========================
+   AJOUT MANUEL POINT ROUGE
+========================== */
+map.on('click', function(e) {
+    const popupContent = document.createElement('div');
+    popupContent.innerHTML = "<strong>Choisissez le type de déchet :</strong><br>";
+
+    const select = document.createElement('select');
+    ["Plastique", "Mégots", "Cartons", "Verre"].forEach(opt => {
+        const optionEl = document.createElement('option');
+        optionEl.value = opt;
+        optionEl.text = opt;
+        select.appendChild(optionEl);
     });
 
-    /* Points verts existants */
-    const dechetsVertsCoords = [
-        [48.388, -4.502],
-        [48.365, -4.468],
-        [48.410, -4.480]
-    ];
+    const btnAdd = document.createElement('button');
+    btnAdd.innerText = "Ajouter le point";
+    btnAdd.style.marginTop = "5px";
 
-    dechetsVertsCoords.forEach(coord => {
-        const marker = L.circleMarker(coord, {
-            radius: 8,
-            color: '#1e8449',
-            fillColor: '#2ecc71',
-            fillOpacity: 0.9,
-            weight: 2
-        }).addTo(map);
+    btnAdd.onclick = function() {
+        const now = new Date().toLocaleString();
+        createRedMarker(e.latlng, now);
+        map.closePopup();
+    };
 
-        const popupContent = document.createElement('div');
-        popupContent.innerHTML = `🟢 Déchets récupérés<br><em>Date : ${dateFixe}</em>`;
+    popupContent.appendChild(select);
+    popupContent.appendChild(document.createElement('br'));
+    popupContent.appendChild(btnAdd);
 
-        const btn = document.createElement('button');
-        btn.innerText = "Supprimer";
-        btn.className = "delete-btn";
-        btn.onclick = function() {
-            map.removeLayer(marker);
-        };
+    L.popup()
+     .setLatLng(e.latlng)
+     .setContent(popupContent)
+     .openOn(map);
+});
 
-        popupContent.appendChild(document.createElement('br'));
-        popupContent.appendChild(btn);
+/* ==========================
+   🟠 → PASSAGE À VALIDER
+========================== */
+function markAsCleaned() {
+    if (!selectedMarker) return;
+    document.getElementById("uploadModal").style.display = "flex";
+}
 
-        marker.bindPopup(popupContent);
-    });
+function closeModal() {
+    document.getElementById("uploadModal").style.display = "none";
+    document.getElementById("photoInput").value = "";
+}
 
-    /* Ajouter un point rouge avec liste déroulante */
-    map.on('click', function(e) {
-        const popupContent = document.createElement('div');
-        popupContent.innerHTML = "<strong>Choisissez le type de déchet :</strong><br>";
+document.getElementById("sendPhotoBtn").addEventListener("click", () => {
+    const fileInput = document.getElementById("photoInput");
 
-        const select = document.createElement('select');
-        const options = ["Plastique", "Mégots", "Cartons", "Verre"];
-        options.forEach(opt => {
-            const optionEl = document.createElement('option');
-            optionEl.value = opt;
-            optionEl.text = opt;
-            select.appendChild(optionEl);
-        });
-
-        const btnAdd = document.createElement('button');
-        btnAdd.innerText = "Ajouter le point";
-        btnAdd.style.marginTop = "5px";
-
-        btnAdd.onclick = function() {
-            const typeDechet = select.value;
-            const now = new Date().toLocaleString();
-
-            const marker = L.circleMarker(e.latlng, {
-                radius: 10,
-                color: '#c0392b',
-                fillColor: '#e74c3c',
-                fillOpacity: 0.9,
-                weight: 2
-            }).addTo(map);
-
-            marker.bindPopup(`
-                🔴 ${typeDechet}<br>
-                <em>Date : ${now}</em><br><br>
-                <button onclick="markAsCleaned()">Je l’ai nettoyée</button>
-            `);
-
-            marker.on("click", () => {
-                selectedMarker = marker;
-            });
-
-            map.closePopup();
-        };
-
-        popupContent.appendChild(select);
-        popupContent.appendChild(document.createElement('br'));
-        popupContent.appendChild(btnAdd);
-
-        L.popup()
-         .setLatLng(e.latlng)
-         .setContent(popupContent)
-         .openOn(map);
-    });
-
-    function markAsCleaned() {
-        if (!selectedMarker) return;
-        document.getElementById("uploadModal").style.display = "flex";
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert("⛔ Une image est obligatoire pour valider le nettoyage.");
+        return;
     }
 
-    function closeModal() {
-        document.getElementById("uploadModal").style.display = "none";
-        document.getElementById("photoInput").value = "";
-    }
+    selectedMarker.status = "orange";
+    selectedMarker.likes = 0;
 
-    document.getElementById("sendPhotoBtn").addEventListener("click", () => {
-        const fileInput = document.getElementById("photoInput");
-
-        if (!fileInput.files || fileInput.files.length === 0) {
-            alert("⛔ Une image est obligatoire pour valider le nettoyage.");
-            return;
-        }
-
-        const file = fileInput.files[0];
-        console.log("Image envoyée :", file.name);
-
-        selectedMarker.setStyle({
-            radius: 9,
-            color: '#e67e22',
-            fillColor: '#f39c12',
-            fillOpacity: 0.9
-        });
-
-        selectedMarker.setPopupContent("🟠 Zone nettoyée – en attente de validation");
-
-        closeModal();
+    selectedMarker.setStyle({
+        radius: 9,
+        color: '#e67e22',
+        fillColor: '#f39c12',
+        fillOpacity: 0.9
     });
+
+    updateOrangePopup(selectedMarker);
+    closeModal();
+});
+
+/* ==========================
+   👍 VALIDATION COMMUNAUTAIRE
+========================== */
+function updateOrangePopup(marker) {
+    marker.bindPopup(`
+        🟠 Zone nettoyée – en attente de validation<br>
+        👍 Vérifications : ${marker.likes} / ${LIKES_REQUIRED}<br><br>
+        <button onclick="likeZone()">J’ai vérifié</button>
+    `);
+}
+
+function likeZone() {
+    if (!selectedMarker || selectedMarker.status !== "orange") return;
+
+    selectedMarker.likes++;
+
+    if (selectedMarker.likes >= LIKES_REQUIRED) {
+        passToGreen(selectedMarker);
+    } else {
+        updateOrangePopup(selectedMarker);
+        selectedMarker.openPopup();
+    }
+}
+
+/* ==========================
+   🟢 PASSAGE VALIDÉ
+========================== */
+function passToGreen(marker) {
+    marker.status = "green";
+
+    marker.setStyle({
+        radius: 8,
+        color: '#1e8449',
+        fillColor: '#2ecc71',
+        fillOpacity: 0.9
+    });
+
+    const now = new Date().toLocaleString();
+
+    marker.bindPopup(`
+        🟢 Déchets récupérés<br>
+        <em>Validé le : ${now}</em>
+    `);
+
+    marker.openPopup();
+}
 </script>
 
 </body>
