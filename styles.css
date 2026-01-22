@@ -52,16 +52,18 @@ nav a:hover {
 
 /* --- Contenu Principal --- */
 .hero {
-    width: 100%;
-    margin: 0;
-    padding: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;   /* centre horizontalement */
+  overflow: hidden;   
 }
+
 .hero-image {
-    width: 100%;
-    height: auto;
-    display: block;
-    object-fit: cover;
+  width: 100%;
+  height: auto;
+  display: block;
 }
+
 
 main {
     padding: 20px;
