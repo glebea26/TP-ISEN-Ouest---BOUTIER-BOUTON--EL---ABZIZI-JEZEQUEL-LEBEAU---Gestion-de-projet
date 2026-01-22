@@ -54,7 +54,6 @@ nav a:hover {
 .hero {
   width: 100%;
   display: auto;
-  justify-content: center;   /* centre horizontalement */
   overflow: hidden;   
 }
 
