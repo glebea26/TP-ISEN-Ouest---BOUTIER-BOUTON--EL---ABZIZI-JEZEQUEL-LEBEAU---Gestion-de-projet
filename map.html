@@ -103,6 +103,17 @@
     </div>
 </div>
 
+<!-- Modal photo AVANT -->
+<div id="beforeModal">
+    <div class="modal-content">
+        <h3>📷 Photo AVANT nettoyage</h3>
+        <input type="file" id="beforePhotoInput" accept="image/*" required><br><br>
+        <button id="sendBeforePhotoBtn">Valider</button>
+        <button onclick="closeBeforeModal()">Annuler</button>
+    </div>
+</div>
+
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const littoralBrestBounds = L.latLngBounds(
@@ -123,68 +134,20 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
+map.options.closePopupOnClick = false;
+
+L.Popup.prototype.options.maxWidth = 280;
+L.Popup.prototype.options.minWidth = 200;
+
+
 const dateFixe = "22/01/2026";
 let selectedMarker = null;
+let pendingLatLng = null;
+let pendingType = null;
 const LIKES_REQUIRED = 3;
 
 /* ==========================
-   🔴 POINTS ROUGES
-========================== */
-const dechetsRouges = [
-    [48.382, -4.494],
-    [48.371, -4.477],
-    [48.405, -4.515],
-    [48.360, -4.450]
-];
-
-dechetsRouges.forEach(coord => createRedMarker(coord, dateFixe));
-
-function createRedMarker(coord, date) {
-    const marker = L.circleMarker(coord, {
-        radius: 10,
-        color: '#c0392b',
-        fillColor: '#e74c3c',
-        fillOpacity: 0.9,
-        weight: 2
-    }).addTo(map);
-
-    marker.status = "red";
-    marker.likes = 0;
-
-    marker.bindPopup(`
-        🔴 Déchets à ramasser<br>
-        <em>Date : ${date}</em><br><br>
-        <button onclick="markAsCleaned()">Je l’ai nettoyée</button>
-    `);
-
-    marker.on("click", () => selectedMarker = marker);
-}
-
-/* ==========================
-   🟢 POINTS VERTS EXISTANTS
-========================== */
-const dechetsVertsCoords = [
-    [48.388, -4.502],
-    [48.365, -4.468],
-    [48.410, -4.480]
-];
-
-dechetsVertsCoords.forEach(coord => createGreenMarker(coord, dateFixe));
-
-function createGreenMarker(coord, date) {
-    const marker = L.circleMarker(coord, {
-        radius: 8,
-        color: '#1e8449',
-        fillColor: '#2ecc71',
-        fillOpacity: 0.9,
-        weight: 2
-    }).addTo(map);
-
-    marker.bindPopup(`🟢 Déchets récupérés<br><em>Date : ${date}</em>`);
-}
-
-/* ==========================
-   AJOUT MANUEL POINT ROUGE
+   🔴 CRÉATION POINT ROUGE
 ========================== */
 map.on('click', function(e) {
     const popupContent = document.createElement('div');
@@ -203,8 +166,9 @@ map.on('click', function(e) {
     btnAdd.style.marginTop = "5px";
 
     btnAdd.onclick = function() {
-        const now = new Date().toLocaleString();
-        createRedMarker(e.latlng, now);
+        pendingLatLng = e.latlng;
+        pendingType = select.value;
+        document.getElementById("beforeModal").style.display = "flex";
         map.closePopup();
     };
 
@@ -218,8 +182,61 @@ map.on('click', function(e) {
      .openOn(map);
 });
 
+document.getElementById("sendBeforePhotoBtn").addEventListener("click", () => {
+    const fileInput = document.getElementById("beforePhotoInput");
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert("⛔ Une photo AVANT est obligatoire.");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        createRedMarker(pendingLatLng, pendingType, e.target.result);
+        closeBeforeModal();
+    };
+
+    reader.readAsDataURL(file);
+});
+
+function closeBeforeModal() {
+    document.getElementById("beforeModal").style.display = "none";
+    document.getElementById("beforePhotoInput").value = "";
+}
+
 /* ==========================
-   🟠 → PASSAGE À VALIDER
+   🔴 MARQUEUR ROUGE
+========================== */
+function createRedMarker(latlng, type, beforePhoto) {
+    const marker = L.circleMarker(latlng, {
+        radius: 10,
+        color: '#c0392b',
+        fillColor: '#e74c3c',
+        fillOpacity: 0.9,
+        weight: 2
+    }).addTo(map);
+
+    marker.status = "red";
+    marker.likes = 0;
+    marker.beforePhoto = beforePhoto;
+    marker.afterPhoto = null;
+
+    marker.bindPopup(getRedPopup(marker, type));
+    marker.on("click", () => selectedMarker = marker);
+}
+
+function getRedPopup(marker, type) {
+    return `
+        🔴 ${type}<br>
+        <em>Date : ${new Date().toLocaleString()}</em><br><br>
+        <img src="${marker.beforePhoto}" style="width:100%;border-radius:6px"><br><br>
+        <button onclick="markAsCleaned()">Je l’ai nettoyée</button>
+    `;
+}
+
+/* ==========================
+   🟠 PASSAGE À VALIDER
 ========================== */
 function markAsCleaned() {
     if (!selectedMarker) return;
@@ -235,35 +252,60 @@ document.getElementById("sendPhotoBtn").addEventListener("click", () => {
     const fileInput = document.getElementById("photoInput");
 
     if (!fileInput.files || fileInput.files.length === 0) {
-        alert("⛔ Une image est obligatoire pour valider le nettoyage.");
+        alert("⛔ Une photo APRÈS est obligatoire.");
         return;
     }
 
-    selectedMarker.status = "orange";
-    selectedMarker.likes = 0;
+    const file = fileInput.files[0];
+    const reader = new FileReader();
 
-    selectedMarker.setStyle({
+    reader.onload = function(e) {
+        selectedMarker.afterPhoto = e.target.result;
+        passToOrange(selectedMarker);
+        closeModal();
+    };
+
+    reader.readAsDataURL(file);
+});
+
+function passToOrange(marker) {
+    marker.status = "orange";
+    marker.likes = 0;
+
+    marker.setStyle({
         radius: 9,
         color: '#e67e22',
         fillColor: '#f39c12',
         fillOpacity: 0.9
     });
 
-    updateOrangePopup(selectedMarker);
-    closeModal();
-});
+    updateOrangePopup(marker);
+}
 
 /* ==========================
-   👍 VALIDATION COMMUNAUTAIRE
+   🟠 POPUP AVEC PHOTOS
 ========================== */
 function updateOrangePopup(marker) {
     marker.bindPopup(`
         🟠 Zone nettoyée – en attente de validation<br>
         👍 Vérifications : ${marker.likes} / ${LIKES_REQUIRED}<br><br>
+
+        <strong>Avant :</strong><br>
+        <img src="${marker.beforePhoto}" class="popup-img"><br>
+
+        <strong>Après :</strong><br>
+        <img src="${marker.afterPhoto}" class="popup-img"><br><br>
+
         <button onclick="likeZone()">J’ai vérifié</button>
     `);
+
+    marker.openPopup();
 }
 
+
+/* ==========================
+   👍 VALIDATION COMMUNAUTAIRE
+========================== */
 function likeZone() {
     if (!selectedMarker || selectedMarker.status !== "orange") return;
 
@@ -273,7 +315,6 @@ function likeZone() {
         passToGreen(selectedMarker);
     } else {
         updateOrangePopup(selectedMarker);
-        selectedMarker.openPopup();
     }
 }
 
@@ -290,15 +331,17 @@ function passToGreen(marker) {
         fillOpacity: 0.9
     });
 
-    const now = new Date().toLocaleString();
-
     marker.bindPopup(`
         🟢 Déchets récupérés<br>
-        <em>Validé le : ${now}</em>
+        <em>Validé le : ${new Date().toLocaleString()}</em><br><br>
+
+        <strong>Après nettoyage :</strong><br>
+        <img src="${marker.afterPhoto}" class="popup-img"><br>
     `);
 
     marker.openPopup();
 }
+
 </script>
 
 </body>
