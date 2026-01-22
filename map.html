@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carte des zones polluées</title>
+    <title>Carte des zones polluées – Littoral de Brest</title>
 
-    <!-- Feuille de style Leaflet -->
+    <!-- Leaflet CSS -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -14,8 +14,21 @@
     <!-- Ton CSS -->
     <link rel="stylesheet" href="styles.css">
 
-    <!-- Style minimum pour afficher la carte -->
     <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        header, footer {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .map-container {
+            padding: 20px;
+        }
+
         .map {
             height: 500px;
             width: 100%;
@@ -31,7 +44,7 @@
 
 <main>
     <div class="map-container">
-        <h2>Repérez les zones polluées</h2>
+        <h2>Repérez les zones polluées du littoral de Brest</h2>
 
         <!-- Carte -->
         <div id="map" class="map"></div>
@@ -44,15 +57,26 @@
     <p>&copy; 2026 Trashmon Go - Tous droits réservés</p>
 </footer>
 
-<!-- Script Leaflet -->
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // Coordonnées de Brest
-    const brest = [48.3904, -4.4861];
+    // Limites du littoral de Brest (zone jouable)
+    const littoralBrestBounds = L.latLngBounds(
+        [48.32, -4.65], // Sud-Ouest
+        [48.45, -4.35]  // Nord-Est
+    );
 
     // Initialisation de la carte
-    const map = L.map('map').setView(brest, 12);
+    const map = L.map('map', {
+        maxBounds: littoralBrestBounds,
+        maxBoundsViscosity: 1.0, // empêche de sortir de la zone
+        minZoom: 12,
+        maxZoom: 17
+    });
+
+    // Centrage et zoom automatique sur le littoral
+    map.fitBounds(littoralBrestBounds);
 
     // Fond de carte OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -63,4 +87,5 @@
 
 </body>
 </html>
+
 
