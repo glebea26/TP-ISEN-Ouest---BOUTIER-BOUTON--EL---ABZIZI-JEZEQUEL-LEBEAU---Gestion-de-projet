@@ -53,15 +53,17 @@ nav a:hover {
 /* --- Contenu Principal --- */
 .hero {
   width: 100%;
-  display: flex;
+  display: auto;
   justify-content: center;   /* centre horizontalement */
   overflow: hidden;   
 }
 
 .hero-image {
-  width: 100%;
-  height: auto;
-  display: block;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0;
+    padding: 0;
 }
 
 
