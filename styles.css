@@ -21,12 +21,15 @@ header h1 {
     margin: 0;
     font-size: 3rem; 
     letter-spacing: 2px; 
-    color: #b2ff59;
+    color: #ffffff;
     -webkit-text-stroke: 2.5px #1b5e20; 
     text-shadow: 4px 4px 0px #0d3b12;
     paint-order: stroke fill;
 }
 
+.trashmon{
+    color: #b2ff59;
+}
 header p {
     margin: 5px 0 15px 0;
     font-style: italic;
