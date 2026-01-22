@@ -4,21 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carte des zones polluées</title>
+
+    <!-- Feuille de style Leaflet -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <!-- Ton CSS -->
     <link rel="stylesheet" href="styles.css">
+
+    <!-- Style minimum pour afficher la carte -->
+    <style>
+        .map {
+            height: 500px;
+            width: 100%;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Carte des zones polluées</h1>
-    </header>
-    <main>
-        <div class="map-container">
-            <h2>Repérez les zones polluées</h2>
-            <div id="map" class="map"></div> <!-- Cette div sera remplacée par une carte interactive dans une version complète -->
-            <p>Choisissez une zone rouge pour commencer votre nettoyage !</p>
-        </div>
-    </main>
-    <footer>
-        <p>&copy; 2026 Trashmon Go - Tous droits réservés</p>
-    </footer>
+
+<header>
+    <h1>Carte des zones polluées</h1>
+</header>
+
+<main>
+    <div class="map-container">
+        <h2>Repérez les zones polluées</h2>
+
+        <!-- Carte -->
+        <div id="map" class="map"></div>
+
+        <p>Choisissez une zone rouge pour commencer votre nettoyage !</p>
+    </div>
+</main>
+
+<footer>
+    <p>&copy; 2026 Trashmon Go - Tous droits réservés</p>
+</footer>
+
+<!-- Script Leaflet -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // Coordonnées de Brest
+    const brest = [48.3904, -4.4861];
+
+    // Initialisation de la carte
+    const map = L.map('map').setView(brest, 12);
+
+    // Fond de carte OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+</script>
+
 </body>
 </html>
+
