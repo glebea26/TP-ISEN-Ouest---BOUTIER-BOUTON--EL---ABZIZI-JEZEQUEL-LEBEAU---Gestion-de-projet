@@ -275,7 +275,7 @@ function likeZone(){
 }
 
 /* ==========================
-   🟢 PASSAGE VERT (ADMIN: bouton supprimer)
+   🟢 PASSAGE VERT
 ========================== */
 function passToGreen(marker){
   marker.status="green";
@@ -286,9 +286,12 @@ function passToGreen(marker){
     adminButton = `<br><button onclick="deleteGreenPoint()">🗑️ Supprimer ce point</button>`;
   }
 
+  // Affiche toujours la date
+  const dateStr = new Date().toLocaleString();
+
   marker.bindPopup(`
     🟢 Déchets récupérés<br>
-    <em>${new Date().toLocaleString()}</em><br><br>
+    <em>${dateStr}</em><br><br>
     <img src="${marker.afterPhoto}" class="popup-img">
     ${adminButton}
   `);
@@ -321,9 +324,11 @@ function deleteGreenPoint(){
 
   m.status="green";
   m.afterPhoto="https://via.placeholder.com/300x200?text=Après";
+  const dateStr = new Date().toLocaleString();
 
   m.bindPopup(`
-    🟢 Déchets récupérés<br><br>
+    🟢 Déchets récupérés<br>
+    <em>22/01/2026</em><br><br>
     <img src="${m.afterPhoto}" class="popup-img">
     ${isAdmin ? '<br><button onclick="deleteGreenPoint()">🗑️ Supprimer ce point</button>' : ''}
   `);
@@ -362,3 +367,4 @@ function deleteGreenPoint(){
 </script>
 </body>
 </html>
+
