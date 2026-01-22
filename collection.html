@@ -13,23 +13,24 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f0f0f0;
             min-height: 100vh;
             color: #333;
         }
 
         header {
-            background: rgba(255, 255, 255, 0.95);
+            background: linear-gradient(135deg, #52b788 0%, #40916c 100%);
             padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
 
         .trashmon {
-            font-size: 2rem;
-            color: #667eea;
+            font-size: 2.5rem;
+            color: #d4e157;
             text-align: center;
             margin-bottom: 1rem;
             font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
         }
 
         nav {
@@ -37,17 +38,18 @@
         }
 
         nav a {
-            color: #333;
+            color: white;
             text-decoration: none;
             padding: 0.5rem 1rem;
             margin: 0 0.25rem;
             border-radius: 5px;
             transition: all 0.3s;
+            font-weight: 500;
         }
 
         nav a:hover, nav a.active {
-            background: #667eea;
-            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            color: #d8f3dc;
         }
 
         main {
@@ -57,7 +59,7 @@
         }
 
         h2 {
-            color: white;
+            color: #2d6a4f;
             margin: 2rem 0 1rem;
             font-size: 1.5rem;
         }
@@ -99,7 +101,7 @@
 
         .trashmon-card p {
             font-weight: bold;
-            color: #667eea;
+            color: #2d6a4f;
             font-size: 0.9rem;
         }
 
@@ -146,7 +148,7 @@
             width: 90%;
             position: relative;
             animation: scaleIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            box-shadow: 0 30px 90px rgba(102, 126, 234, 0.4),
+            box-shadow: 0 30px 90px rgba(82, 183, 136, 0.3),
                         0 0 0 1px rgba(255, 255, 255, 0.1);
             overflow: hidden;
         }
@@ -174,13 +176,13 @@
 
         .close-btn:hover {
             background: rgba(255, 255, 255, 0.9);
-            color: #667eea;
+            color: #2d6a4f;
             transform: rotate(90deg) scale(1.1);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #52b788 0%, #2d6a4f 100%);
             padding: 3rem 2rem 2rem;
             position: relative;
             overflow: hidden;
@@ -246,7 +248,7 @@
 
         .modal-title {
             font-size: 2.2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #52b788 0%, #2d6a4f 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -294,14 +296,14 @@
 
         .stat-badge {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #52b788 0%, #2d6a4f 100%);
             color: white;
             padding: 0.5rem 1.2rem;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: bold;
             margin-top: 1.5rem;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 5px 15px rgba(82, 183, 136, 0.4);
             animation: slideUp 0.5s ease 0.4s both;
         }
 
@@ -384,7 +386,7 @@
     </div>
 
     <footer>
-        <p>&copy; 2026 Trashmon Go - Tous droits réservés</p>
+        <p style="color: #333;">&copy; 2026 Trashmon Go - Tous droits réservés</p>
     </footer>
 
     <script>
