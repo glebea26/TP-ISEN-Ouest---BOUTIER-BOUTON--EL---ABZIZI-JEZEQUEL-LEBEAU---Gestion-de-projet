@@ -6,7 +6,6 @@
 <title>Carte des zones polluées – Littoral de Brest</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="styles.css" />
 
 <style>
 body { margin:0;font-family:Arial,sans-serif; }
@@ -30,6 +29,7 @@ body { margin:0;font-family:Arial,sans-serif; }
   margin:5px auto;
 }
 
+/* Modals */
 #uploadModal,#beforeModal {
   display:none;
   position:fixed;
@@ -40,7 +40,6 @@ body { margin:0;font-family:Arial,sans-serif; }
   justify-content:center;
   z-index:1000;
 }
-
 .modal-content {
   background:#fff;
   padding:20px;
@@ -48,8 +47,19 @@ body { margin:0;font-family:Arial,sans-serif; }
   width:300px;
   text-align:center;
 }
-
 .modal-content button { margin:5px; }
+
+/* Bravo Trashmon popup */
+.bravo-popup .leaflet-popup-content-wrapper {
+  background:#f1c40f;
+  border-radius:10px;
+  text-align:center;
+  box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+.bravo-popup .leaflet-popup-content img {
+  max-width:150px;
+  margin-top:10px;
+}
 </style>
 </head>
 
@@ -59,7 +69,7 @@ body { margin:0;font-family:Arial,sans-serif; }
 <h1>Carte des zones polluées</h1>
 <nav>
 <a href="index.html">Accueil</a> |
-<a href="map.html" class="active">Carte</a> |
+<a href="map.html">Carte</a> |
 <a href="gallerie.html">Galerie</a> |
 <a href="collection.html">Collection</a> |
 <a href="profile.html">Profil</a>
@@ -159,7 +169,7 @@ const trashmons = [
 
 /* ==========================
    🔴 ROUGES CODÉS EN DUR
-========================= */
+========================== */
 [
   [48.382,-4.494],
   [48.371,-4.477],
@@ -169,8 +179,8 @@ const trashmons = [
 });
 
 /* ==========================
-   🔴 CRÉATION DYNAMIQUE
-========================= */
+   🔴 AJOUT DYNAMIQUE
+========================== */
 map.on('click',e=>{
   const div=document.createElement('div');
   div.innerHTML="<strong>Type de déchet :</strong><br>";
@@ -215,7 +225,7 @@ function closeModal(){
 
 /* ==========================
    🔴 MARQUEUR ROUGE
-========================= */
+========================== */
 function createRedMarker(latlng,type,beforePhoto){
   const marker=L.circleMarker(latlng,{
     radius:10,color:'#c0392b',fillColor:'#e74c3c',fillOpacity:.9,weight:2
@@ -237,8 +247,11 @@ function createRedMarker(latlng,type,beforePhoto){
 
 /* ==========================
    🟠 PASSAGE ORANGE
-========================= */
-function markAsCleaned(){ if(!selectedMarker)return; document.getElementById("uploadModal").style.display="flex"; }
+========================== */
+function markAsCleaned(){ 
+  if(!selectedMarker) return; 
+  document.getElementById("uploadModal").style.display="flex"; 
+}
 
 document.getElementById("sendPhotoBtn").onclick=()=>{
   const input=document.getElementById("photoInput");
@@ -274,18 +287,20 @@ function updateOrangePopup(marker){
 
 /* ==========================
    👍 LIKE
-========================= */
+========================== */
 function likeZone(){
-  if(!selectedMarker||selectedMarker.status!=="orange")return;
+  if(!selectedMarker||selectedMarker.status!=="orange") return;
   selectedMarker.likes++;
   if(selectedMarker.likes>=LIKES_REQUIRED){
     passToGreen(selectedMarker);
-  } else { updateOrangePopup(selectedMarker); }
+  } else { 
+    updateOrangePopup(selectedMarker); 
+  }
 }
 
 /* ==========================
    🟢 PASSAGE VERT + BRAVO
-========================= */
+========================== */
 function passToGreen(marker){
   marker.status="green";
   marker.setStyle({radius:8,color:'#1e8449',fillColor:'#2ecc71'});
@@ -293,35 +308,41 @@ function passToGreen(marker){
   let adminButton = isAdmin ? `<br><button onclick="deleteGreenPoint()">🗑️ Supprimer ce point</button>` : "";
   const dateStr = new Date().toLocaleString();
 
+  // Popup marker vert
   marker.bindPopup(`
     🟢 Déchets récupérés<br>
     <em>${dateStr}</em><br><br>
     <img src="${marker.afterPhoto}" class="popup-img">
     ${adminButton}
-  `);
-  marker.openPopup();
+  `).openPopup();
 
-  // Vérifie cookie pour BRAVO Trashmon
+  // Popup BRAVO Trashmon
   if(!getCookie("lastTrashmon")){
       const randomIndex = Math.floor(Math.random() * trashmons.length);
       const pokemonImg = trashmons[randomIndex];
-      setCookie("lastTrashmon", pokemonImg, 1); // valable 1 jour
+      setCookie("lastTrashmon", pokemonImg, 1);
 
-      // Popup BRAVO
-      L.popup({closeButton:true,autoClose:true,className:'bravo-popup'})
-        .setLatLng(marker.getLatLng())
-        .setContent(`
+      L.popup({
+        closeButton:true,
+        autoClose:true,
+        className:'bravo-popup',
+        offset: L.point(0, -marker.options.radius)
+      })
+      .setLatLng(marker.getLatLng())
+      .setContent(`
+        <div style="text-align:center;">
           <h3>🎉 Bravo !</h3>
           <p>Vous avez gagné un Trashmon !</p>
           <img src="${pokemonImg}" class="popup-img">
-        `)
-        .openOn(map);
+        </div>
+      `)
+      .openOn(map);
   }
 }
 
 /* ==========================
    🟢 SUPPRESSION POINT VERT (ADMIN)
-========================= */
+========================== */
 function deleteGreenPoint(){
   if(!isAdmin || !selectedMarker) return;
   if(confirm("Supprimer définitivement ce point ?")){
@@ -332,7 +353,7 @@ function deleteGreenPoint(){
 
 /* ==========================
    🟢 VERTS CODÉS EN DUR
-========================= */
+========================== */
 [
   [48.388,-4.502],
   [48.365,-4.468]
@@ -353,7 +374,7 @@ function deleteGreenPoint(){
 
 /* ==========================
    🟠 ORANGES CODÉS EN DUR
-========================= */
+========================== */
 [
   [48.360,-4.450],
   [48.410,-4.480]
