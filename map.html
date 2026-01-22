@@ -50,6 +50,12 @@ body { margin:0;font-family:Arial,sans-serif; }
 }
 
 .modal-content button { margin:5px; }
+
+.bravo-popup .leaflet-popup-content-wrapper {
+  background:#f1c40f !important;
+  border-radius:10px !important;
+  text-align:center;
+}
 </style>
 </head>
 
@@ -136,16 +142,16 @@ const LIKES_REQUIRED=3;
 
 // Liste des Trashmons
 const trashmons = [
-  "ressources/trashmons/trashmon1.png",
-  "ressources/trashmons/trashmon2.png",
-  "ressources/trashmons/trashmon3.png",
-  "ressources/trashmons/trashmon4.png",
-  "ressources/trashmons/trashmon5.png"
+  "ressources/trashmons/trashmon_canette.png",
+  "ressources/trashmons/trashmon_carton.png",
+  "ressources/trashmons/trashmon_megot.png",
+  "ressources/trashmons/trashmon_plastique.png",
+  "ressources/trashmons/trashmon_verre.png"
 ];
 
 /* ==========================
    🔴 ROUGES CODÉS EN DUR
-========================== */
+========================= */
 [
   [48.382,-4.494],
   [48.371,-4.477],
@@ -156,17 +162,15 @@ const trashmons = [
 
 /* ==========================
    🔴 CRÉATION DYNAMIQUE
-========================== */
+========================= */
 map.on('click',e=>{
   const div=document.createElement('div');
   div.innerHTML="<strong>Type de déchet :</strong><br>";
-
   const select=document.createElement('select');
   ["Plastique","Mégots","Cartons","Verre"].forEach(v=>{
     const o=document.createElement('option');
     o.value=v;o.text=v;select.appendChild(o);
   });
-
   const btn=document.createElement('button');
   btn.innerText="Ajouter le point";
   btn.onclick=()=>{
@@ -175,18 +179,15 @@ map.on('click',e=>{
     document.getElementById("beforeModal").style.display="flex";
     map.closePopup();
   };
-
   div.appendChild(select);
   div.appendChild(document.createElement('br'));
   div.appendChild(btn);
-
   L.popup().setLatLng(e.latlng).setContent(div).openOn(map);
 });
 
 document.getElementById("sendBeforePhotoBtn").onclick=()=>{
   const input=document.getElementById("beforePhotoInput");
   if(!input.files.length){ alert("Photo AVANT obligatoire"); return; }
-
   const reader=new FileReader();
   reader.onload=e=>{
     createRedMarker(pendingLatLng,pendingType,e.target.result);
@@ -207,7 +208,7 @@ function closeModal(){
 
 /* ==========================
    🔴 MARQUEUR ROUGE
-========================== */
+========================= */
 function createRedMarker(latlng,type,beforePhoto){
   const marker=L.circleMarker(latlng,{
     radius:10,color:'#c0392b',fillColor:'#e74c3c',fillOpacity:.9,weight:2
@@ -231,16 +232,12 @@ function createRedMarker(latlng,type,beforePhoto){
 
 /* ==========================
    🟠 PASSAGE ORANGE
-========================== */
-function markAsCleaned(){
-  if(!selectedMarker)return;
-  document.getElementById("uploadModal").style.display="flex";
-}
+========================= */
+function markAsCleaned(){ if(!selectedMarker)return; document.getElementById("uploadModal").style.display="flex"; }
 
 document.getElementById("sendPhotoBtn").onclick=()=>{
   const input=document.getElementById("photoInput");
   if(!input.files.length){ alert("Photo APRÈS obligatoire"); return; }
-
   const reader=new FileReader();
   reader.onload=e=>{
     selectedMarker.afterPhoto=e.target.result;
@@ -272,7 +269,7 @@ function updateOrangePopup(marker){
 
 /* ==========================
    👍 LIKE
-========================== */
+========================= */
 function likeZone(){
   if(!selectedMarker||selectedMarker.status!=="orange")return;
   selectedMarker.likes++;
@@ -284,42 +281,44 @@ function likeZone(){
 }
 
 /* ==========================
-   🟢 PASSAGE VERT + Pokémon aléatoire
-========================== */
+   🟢 PASSAGE VERT + POPUP BRAVO
+========================= */
 function passToGreen(marker){
   marker.status="green";
   marker.setStyle({radius:8,color:'#1e8449',fillColor:'#2ecc71'});
 
-  let adminButton = "";
-  if(isAdmin){
-    adminButton = `<br><button onclick="deleteGreenPoint()">🗑️ Supprimer ce point</button>`;
-  }
-
+  let adminButton = isAdmin ? `<br><button onclick="deleteGreenPoint()">🗑️ Supprimer ce point</button>` : "";
   const dateStr = new Date().toLocaleString();
 
-  // Pokémon aléatoire
-  const randomIndex = Math.floor(Math.random() * trashmons.length);
-  const pokemonImg = trashmons[randomIndex];
-
+  // Mettre à jour popup principal
   marker.bindPopup(`
     🟢 Déchets récupérés<br>
     <em>${dateStr}</em><br><br>
-    <img src="${marker.afterPhoto}" class="popup-img"><br>
-    <strong>🎉 Bravo ! Vous avez gagné un Trashmon :</strong><br>
-    <img src="${pokemonImg}" class="popup-img">
+    <img src="${marker.afterPhoto}" class="popup-img">
     ${adminButton}
   `);
-
   marker.openPopup();
+
+  // Popup BRAVO avec Pokémon
+  const randomIndex = Math.floor(Math.random() * trashmons.length);
+  const pokemonImg = trashmons[randomIndex];
+
+  L.popup({closeButton:true,autoClose:true,className:'bravo-popup'})
+    .setLatLng(marker.getLatLng())
+    .setContent(`
+      <h3>🎉 Bravo !</h3>
+      <p>Vous avez gagné un Trashmon !</p>
+      <img src="${pokemonImg}" class="popup-img">
+    `)
+    .openOn(map);
 }
 
 /* ==========================
    🟢 SUPPRESSION POINT VERT (ADMIN)
-========================== */
+========================= */
 function deleteGreenPoint(){
   if(!isAdmin || !selectedMarker) return;
-  const confirmDelete = confirm("Supprimer définitivement ce point ?");
-  if(confirmDelete){
+  if(confirm("Supprimer définitivement ce point ?")){
     map.removeLayer(selectedMarker);
     selectedMarker = null;
   }
@@ -327,7 +326,7 @@ function deleteGreenPoint(){
 
 /* ==========================
    🟢 VERTS CODÉS EN DUR
-========================== */
+========================= */
 [
   [48.388,-4.502],
   [48.365,-4.468]
@@ -335,23 +334,21 @@ function deleteGreenPoint(){
   const m=L.circleMarker(coord,{
     radius:8,color:'#1e8449',fillColor:'#2ecc71',fillOpacity:.9,weight:2
   }).addTo(map);
-
   m.status="green";
   m.afterPhoto="https://via.placeholder.com/300x200?text=Après";
-
+  const dateStr = "22/01/2026";
   m.bindPopup(`
     🟢 Déchets récupérés<br>
-    <em>22/01/2026</em><br><br>
+    <em>${dateStr}</em><br><br>
     <img src="${m.afterPhoto}" class="popup-img">
     ${isAdmin ? '<br><button onclick="deleteGreenPoint()">🗑️ Supprimer ce point</button>' : ''}
   `);
-
   m.on("click",()=>selectedMarker=m);
 });
 
 /* ==========================
    🟠 ORANGES CODÉS EN DUR
-========================== */
+========================= */
 [
   [48.360,-4.450],
   [48.410,-4.480]
@@ -359,12 +356,10 @@ function deleteGreenPoint(){
   const m=L.circleMarker(coord,{
     radius:9,color:'#e67e22',fillColor:'#f39c12',fillOpacity:.9,weight:2
   }).addTo(map);
-
   m.status="orange";
   m.likes=1;
   m.beforePhoto="https://via.placeholder.com/300x200?text=Avant";
   m.afterPhoto="https://via.placeholder.com/300x200?text=Après";
-
   m.bindPopup(`
     🟠 Zone nettoyée<br>
     👍 ${m.likes}/${LIKES_REQUIRED}<br><br>
@@ -374,7 +369,6 @@ function deleteGreenPoint(){
     <img src="${m.afterPhoto}" class="popup-img"><br>
     <button onclick="likeZone()">J’ai vérifié</button>
   `);
-
   m.on("click",()=>selectedMarker=m);
 });
 </script>
