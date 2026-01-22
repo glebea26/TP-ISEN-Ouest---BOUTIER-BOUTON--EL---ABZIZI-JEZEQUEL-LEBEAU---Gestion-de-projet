@@ -17,6 +17,7 @@ header {
 }
 
 header h1 {
+    font-family: 'Pokemon Hollow/Solid';
     margin: 0;
     color: white; /* Force le titre en blanc dans le header */
     font-size: 2rem;
